@@ -1,0 +1,13 @@
+{
+  "name": "mine-addons-news",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mine Addons News - Premium platform for Minecraft Bedrock Addons",
+  "scripts": {
+    "dev": "serve -l 3000 .",
+    "start": "serve -l 3000 ."
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  }
+}

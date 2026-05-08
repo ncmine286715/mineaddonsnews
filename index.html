@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR" class="bg-background">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0b0d12" />
+    <title>Mine Addons News — Addons épicos para Minecraft Bedrock</title>
+    <meta
+      name="description"
+      content="Os melhores addons, mods e mapas para Minecraft Bedrock. Downloads rápidos, seguros e sem enrolação."
+    />
+    <meta property="og:title" content="Mine Addons News" />
+    <meta
+      property="og:description"
+      content="Addons épicos para Minecraft Bedrock — downloads rápidos, seguros e sem enrolação."
+    />
+    <meta property="og:type" content="website" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/css/variables.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/animations.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/home.css" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only">Pular para o conteúdo</a>
+
+    <!-- SLOT do Header (injetado por ui.js) -->
+    <div id="header-slot"></div>
+
+    <main id="main">
+      <!-- HERO -->
+      <section class="hero">
+        <canvas id="bg-canvas" aria-hidden="true"></canvas>
+        <div class="container hero-inner">
+          <div class="hero-badge">
+            <span class="dot"></span> Atualizado semanalmente
+          </div>
+          <h1 class="hero-title text-balance">
+            Os addons mais <span class="grad">épicos</span><br />
+            do Minecraft, num só lugar.
+          </h1>
+          <p class="hero-sub text-pretty" data-bind="heroSubtitle">
+            Curadoria afiada, downloads rápidos e instruções claras. Bora deixar seu mundo absurdo?
+          </p>
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="#addons">
+              Explorar addons <span aria-hidden="true">→</span>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="https://youtube.com" target="_blank" rel="noopener">
+              <span class="icon-yt" aria-hidden="true"></span> Ver no YouTube
+            </a>
+          </div>
+          <div class="hero-stats" aria-label="Estatísticas">
+            <div><strong id="stat-addons">—</strong><span>addons</span></div>
+            <div><strong id="stat-downloads">—</strong><span>downloads</span></div>
+            <div><strong>1.21+</strong><span>compatível</span></div>
+          </div>
+        </div>
+        <div class="hero-floor" aria-hidden="true"></div>
+      </section>
+
+      <!-- DESTAQUES -->
+      <section class="section" id="destaques">
+        <div class="container">
+          <header class="section-head">
+            <div>
+              <span class="kicker">Destaques</span>
+              <h2 class="section-title">Os queridinhos da semana</h2>
+            </div>
+            <a href="#addons" class="link-arrow">Ver todos →</a>
+          </header>
+
+          <div class="featured-grid" id="featured-grid"></div>
+        </div>
+      </section>
+
+      <!-- MEUS ADDONS (Linktree premium) -->
+      <section class="section" id="creator">
+        <div class="container">
+          <header class="section-head">
+            <div>
+              <span class="kicker">Meus Addons</span>
+              <h2 class="section-title">Criados pelo canal</h2>
+            </div>
+          </header>
+          <div class="featured-creator__grid" id="creator-grid"></div>
+        </div>
+      </section>
+
+      <!-- CATEGORIAS -->
+      <section class="section" id="categories">
+        <div class="container">
+          <header class="section-head">
+            <div>
+              <span class="kicker">Categorias</span>
+              <h2 class="section-title">Explore por estilo</h2>
+            </div>
+          </header>
+          <div class="categories" id="categories-grid"></div>
+        </div>
+      </section>
+
+      <!-- ADDONS LIST -->
+      <section class="section section-alt" id="addons">
+        <div class="container">
+          <header class="section-head">
+            <div>
+              <span class="kicker">Catálogo</span>
+              <h2 class="section-title">Todos os addons</h2>
+            </div>
+            <div class="catalog-controls">
+              <input
+                type="search"
+                id="search-input"
+                class="input"
+                placeholder="Buscar por nome, tag…"
+                aria-label="Buscar addons"
+              />
+            </div>
+          </header>
+
+          <div class="filter-bar" id="filter-bar" role="tablist" aria-label="Filtrar por categoria">
+            <div class="chip-row" id="chip-row"></div>
+          </div>
+
+          <div class="addons-grid" id="addons-grid"></div>
+
+          <div class="empty-state" id="empty-state" hidden>
+            <h3>Nada encontrado</h3>
+            <p class="muted">Tenta outra busca ou troca o filtro.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRENDING -->
+      <section class="section" id="trending">
+        <div class="container">
+          <header class="section-head">
+            <div>
+              <span class="kicker">Em alta</span>
+              <h2 class="section-title">Bombando agora</h2>
+            </div>
+          </header>
+          <div class="addons-grid trending-grid" id="trending-grid"></div>
+        </div>
+      </section>
+
+      <!-- MEUS LINKS (linktree gamer) -->
+      <section class="section" id="meus-links">
+        <div class="container">
+          <header class="section-head center">
+            <div>
+              <span class="kicker">Bio</span>
+              <h2 class="section-title">Meus Links</h2>
+              <p class="muted">Cole na bio. Compartilha com a galera.</p>
+            </div>
+          </header>
+
+          <div class="linktree" id="linktree"></div>
+        </div>
+      </section>
+
+      <!-- SEGURANÇA -->
+      <section class="section" id="security">
+        <div class="container">
+          <header class="section-head center">
+            <div>
+              <span class="kicker">Segurança</span>
+              <h2 class="section-title">Baixe sem medo</h2>
+              <p class="muted">Todos os arquivos passam pelo nosso scanner Mine Defender™.</p>
+            </div>
+          </header>
+          <div class="trust-grid">
+            <div class="trust-item">
+              <div class="trust-item__icon">🛡️</div>
+              <h4>Verificação Automática</h4>
+              <p class="muted">Análise heurística antes de cada download.</p>
+            </div>
+            <div class="trust-item">
+              <div class="trust-item__icon">🔒</div>
+              <h4>HTTPS e Integridade</h4>
+              <p class="muted">Conexão segura e arquivos íntegros.</p>
+            </div>
+            <div class="trust-item">
+              <div class="trust-item__icon">✅</div>
+              <h4>Curadoria Humana</h4>
+              <p class="muted">Todos os addons são revisados pela equipe.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOBRE / CTA -->
+      <section class="section section-cta" id="youtube">
+        <div class="container">
+          <div class="cta-card">
+            <div class="cta-body">
+              <span class="kicker">Sobre o canal</span>
+              <h2 class="section-title">Conteúdo novo toda semana, sem enrolação.</h2>
+              <p class="muted text-pretty">
+                Reviews, tutoriais e os addons mais loucos do Minecraft Bedrock. Inscreve aí pra não
+                perder nada.
+              </p>
+              <div class="cta-actions">
+                <a class="btn btn-primary btn-lg" href="https://youtube.com" target="_blank" rel="noopener">
+                  <span class="icon-yt" aria-hidden="true"></span> Inscrever no YouTube
+                </a>
+                <a class="btn btn-ghost btn-lg" href="#meus-links">Ver todas as redes</a>
+              </div>
+            </div>
+            <div class="cta-art" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- SLOT do Footer (injetado por ui.js) -->
+    <div id="footer-slot"></div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <script type="module" src="/js/home.js"></script>
+  </body>
+</html>
