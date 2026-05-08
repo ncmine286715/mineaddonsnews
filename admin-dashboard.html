@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin Ultra • Mineaddonsnews</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:#111;border-right:1px solid rgba(255,255,255,0.06);padding:1.25rem;display:flex;flex-direction:column;z-index:100;transition:transform 0.3s;overflow-y:auto}
+.sidebar-logo{font-size:1.1rem;font-weight:800;color:#00c853;margin-bottom:0.2rem;display:flex;align-items:center;gap:8px}
+.sidebar-sub{font-size:0.7rem;color:#555;margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:2px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:0.85rem;font-weight:500;color:#777;cursor:pointer;transition:all 0.2s;border:none;background:none;width:100%;text-align:left;font-family:'Inter',sans-serif}
+.sidebar-link:hover{background:rgba(255,255,255,0.05);color:#ccc}
+.sidebar-link.active{background:rgba(0,200,83,0.1);color:#00c853}
+.sidebar-link .link-badge{background:#ff5252;color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:10px;margin-left:auto;font-weight:700}
+.sidebar-section{font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:#444;padding:12px 12px 4px;margin-top:0.5rem;font-weight:700}
+.sidebar-footer{border-top:1px solid rgba(255,255,255,0.06);padding-top:0.75rem;margin-top:auto}
+.sidebar-user{display:flex;align-items:center;gap:10px;margin-bottom:0.75rem}
+.sidebar-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00c853,#00e676);display:flex;align-items:center;justify-content:center;font-weight:700;color:#000;font-size:0.85rem;flex-shrink:0}
+.sidebar-user-info{flex:1;min-width:0}
+.sidebar-user-name{font-size:0.8rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-role{font-size:0.65rem;color:#00c853}
+.logout-btn{width:100%;padding:9px;border-radius:10px;background:rgba(255,82,82,0.1);color:#ff5252;border:1px solid rgba(255,82,82,0.15);font-family:'Inter',sans-serif;font-weight:600;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
+.logout-btn:hover{background:rgba(255,82,82,0.2)}
+
+/* MAIN */
+.main{margin-left:260px;padding:1.5rem 2rem;max-width:1400px}
+.main-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:0.5rem}
+.main-header h1{font-size:1.6rem;font-weight:800}
+.header-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:10px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.82rem;border:none;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-primary{background:#00c853;color:#000}
+.btn-primary:hover{background:#00e676;transform:translateY(-1px);box-shadow:0 4px 15px rgba(0,200,83,0.3)}
+.btn-secondary{background:#1a1a1a;color:#aaa;border:1px solid rgba(255,255,255,0.08)}
+.btn-secondary:hover{border-color:#00c853;color:#00c853}
+.btn-danger{background:rgba(255,82,82,0.1);color:#ff5252;border:1px solid rgba(255,82,82,0.15)}
+.btn-danger:hover{background:rgba(255,82,82,0.2)}
+.btn-warn{background:rgba(255,152,0,0.1);color:#ff9100;border:1px solid rgba(255,152,0,0.15)}
+.btn-warn:hover{background:rgba(255,152,0,0.2)}
+.btn-gold{background:linear-gradient(135deg,#ffd740,#ff9100);color:#000;border:none}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,180,0,0.3)}
+.btn-sm{padding:6px 12px;font-size:0.75rem}
+.btn-xs{padding:4px 8px;font-size:0.7rem;border-radius:6px}
+
+/* STATS GRID */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin-bottom:1.5rem}
+.stat-card{background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.1rem;position:relative;overflow:hidden}
+.stat-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;filter:blur(30px);opacity:0.15;pointer-events:none}
+.stat-card.green::after{background:#00c853}
+.stat-card.gold::after{background:#ffd740}
+.stat-card.purple::after{background:#7c4dff}
+.stat-card.red::after{background:#ff5252}
+.stat-card-label{font-size:0.75rem;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem}
+.stat-card-value{font-size:1.8rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:#00c853}
+.stat-card-change{font-size:0.7rem;margin-top:0.25rem;color:#555}
+
+/* CHART */
+.chart-container{background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;position:relative}
+.chart-container h3{font-size:0.95rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.chart-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.chart-bar-label{width:100px;font-size:0.78rem;color:#888;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0}
+.chart-bar-track{flex:1;height:28px;background:rgba(255,255,255,0.04);border-radius:8px;overflow:hidden;position:relative}
+.chart-bar-fill{height:100%;border-radius:8px;transition:width 0.8s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;padding-left:10px;font-size:0.7rem;font-weight:600;color:#000;min-width:0}
+.chart-bar-fill.green{background:linear-gradient(90deg,#00c853,#00e676)}
+.chart-bar-fill.gold{background:linear-gradient(90deg,#ff9100,#ffd740)}
+.chart-bar-fill.purple{background:linear-gradient(90deg,#7c4dff,#b388ff)}
+.chart-bar-value{font-size:0.72rem;color:#777;width:50px;text-align:right;flex-shrink:0}
+
+/* SECTIONS */
+.section{display:none}
+.section.active{display:block;animation:sectionFade 0.3s ease}
+@keyframes sectionFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* FORM PANEL */
+.form-panel{background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:1.5rem;margin-bottom:1.5rem}
+.form-panel h2{font-size:1.1rem;margin-bottom:1.25rem;color:#00c853;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.form-group{display:flex;flex-direction:column;gap:3px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:0.75rem;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.form-group input,.form-group textarea,.form-group select{padding:11px 13px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-family:'Inter',sans-serif;font-size:0.88rem;transition:all 0.2s;resize:vertical}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:#00c853;box-shadow:0 0 0 3px rgba(0,200,83,0.1)}
+.form-group textarea{min-height:70px}
+.form-group .hint{font-size:0.7rem;color:#555}
+.form-group select{cursor:pointer}
+.form-actions{display:flex;gap:6px;margin-top:1.25rem}
+.form-separator{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:1rem 0}
+
+/* IMAGE PREVIEW */
+.image-preview{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.image-preview img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.1)}
+
+/* CATEGORIES LIST */
+.categories-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.category-tag{display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(0,200,83,0.08);border:1px solid rgba(0,200,83,0.15);border-radius:20px;font-size:0.78rem;color:#00c853;transition:all 0.2s}
+.category-tag:hover{border-color:rgba(0,200,83,0.3)}
+.category-tag.ncmine{background:rgba(255,215,64,0.1);border-color:rgba(255,215,64,0.25);color:#ffd740}
+.category-tag button{background:none;border:none;color:#ff5252;cursor:pointer;font-size:0.9rem;line-height:1;padding:0}
+.category-tag .move-btn{color:#666;font-size:0.7rem}
+.category-tag .move-btn:hover{color:#00c853}
+.category-tag .edit-btn{color:#00c853;font-size:0.75rem;margin-left:2px}
+
+/* TABLE */
+.table-container{background:#111;border:1px solid rgba(255,255,255,0.06);border-radius:14px;overflow:hidden}
+.table-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:0.5rem}
+.table-header h3{font-size:0.95rem;font-weight:700}
+.table-header-actions{display:flex;gap:6px;flex-wrap:wrap}
+.table-search{padding:7px 12px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-family:'Inter',sans-serif;font-size:0.82rem;width:220px}
+.table-search:focus{outline:none;border-color:#00c853}
+
+/* ROW */
+.row{display:flex;align-items:center;padding:0.85rem 1.25rem;border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.2s}
+.row:hover{background:rgba(255,255,255,0.02)}
+.row.dragging{opacity:0.5}
+.row.selected{background:rgba(0,200,83,0.05);border-left:3px solid #00c853}
+.row-img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:#1a1a1a;flex-shrink:0;margin-right:12px}
+.row-img-placeholder{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#0d2818,#1a3a2a);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;margin-right:12px}
+.row-check{margin-right:10px;accent-color:#00c853;width:16px;height:16px;cursor:pointer}
+.row-info{flex:1;min-width:0}
+.row-name{font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.row-meta{font-size:0.75rem;color:#666;display:flex;gap:10px;margin-top:2px;flex-wrap:wrap}
+.row-actions{display:flex;gap:4px;flex-shrink:0;margin-left:10px}
+.pinned-badge{background:#ffd740;color:#000;padding:1px 6px;border-radius:4px;font-size:0.65rem;font-weight:700}
+.ncmine-badge{background:rgba(255,215,64,0.15);color:#ffd740;padding:1px 6px;border-radius:4px;font-size:0.65rem;font-weight:700}
+.drag-handle{cursor:grab;color:#555;font-size:1rem;margin-right:8px;user-select:none}
+.drag-handle:active{cursor:grabbing}
+
+/* BULK ACTIONS BAR */
+.bulk-bar{display:none;padding:0.75rem 1.25rem;background:rgba(0,200,83,0.08);border-bottom:1px solid rgba(0,200,83,0.15);align-items:center;gap:10px;font-size:0.85rem;font-weight:600;color:#00c853}
+.bulk-bar.show{display:flex}
+.bulk-bar .count{margin-right:auto}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;padding:1.5rem;backdrop-filter:blur(8px)}
+.modal-overlay.open{display:flex}
+.modal{background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:1.75rem;max-width:800px;width:100%;max-height:90vh;overflow-y:auto;animation:modalSlide 0.3s ease}
+@keyframes modalSlide{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+.modal h2{font-size:1.1rem;margin-bottom:1.25rem;color:#00c853;display:flex;align-items:center;gap:8px}
+.modal-close{position:absolute;top:1rem;right:1rem;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#888;font-size:1.2rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s}
+.modal-close:hover{background:rgba(255,82,82,0.2);color:#ff5252;border-color:rgba(255,82,82,0.3)}
+
+/* NCMINE EDITOR */
+.ncmine-section{background:linear-gradient(135deg,#1a1200,#1f1600);border:1.5px solid rgba(255,215,64,0.25);border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.ncmine-section::before{content:'';position:absolute;top:-50px;right:-50px;width:150px;height:150px;background:radial-gradient(circle,rgba(255,215,64,0.08),transparent);border-radius:50%;pointer-events:none}
+.ncmine-section h2{color:#ffd740;font-size:1.15rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px}
+.ncmine-field label{color:rgba(255,215,64,0.7)}
+.ncmine-field input,.ncmine-field textarea,.ncmine-field select{border-color:rgba(255,215,64,0.15)}
+.ncmine-field input:focus,.ncmine-field textarea:focus,.ncmine-field select:focus{border-color:#ffd740;box-shadow:0 0 0 3px rgba(255,215,64,0.1)}
+
+/* COLOR PICKER ROW */
+.color-picker-row{display:flex;align-items:center;gap:10px}
+.color-picker-row input[type=color]{width:40px;height:36px;border:2px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;background:none;padding:2px}
+.color-picker-row input[type=text]{flex:1}
+
+/* ICON PICKER */
+.icon-picker{display:flex;flex-wrap:wrap;gap:6px;padding:8px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.08);max-height:120px;overflow-y:auto}
+.icon-option{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,0.05);cursor:pointer;font-size:1.1rem;transition:all 0.2s;border:2px solid transparent}
+.icon-option:hover{background:rgba(255,255,255,0.1)}
+.icon-option.selected{border-color:#00c853;background:rgba(0,200,83,0.1)}
+
+/* TOAST */
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:10000;display:flex;flex-direction:column;gap:6px}
+.toast{background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-left:4px solid #00c853;padding:10px 16px;border-radius:10px;font-size:0.85rem;animation:toastIn 0.3s ease;box-shadow:0 8px 30px rgba(0,0,0,0.4)}
+.toast.error{border-left-color:#ff5252}
+.toast.warn{border-left-color:#ff9100}
+@keyframes toastIn{from{opacity:0;transform:translateX(80px)}to{opacity:1;transform:translateX(0)}}
+
+/* ACTIVITY LOG */
+.activity-list{display:flex;flex-direction:column;gap:0}
+.activity-item{display:flex;align-items:flex-start;gap:10px;padding:0.65rem 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:0.82rem}
+.activity-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;background:rgba(255,255,255,0.05)}
+.activity-text{color:#aaa;flex:1;line-height:1.4}
+.activity-text strong{color:#fff}
+.activity-time{color:#555;font-size:0.72rem;white-space:nowrap;flex-shrink:0}
+
+/* MOBILE */
+.mobile-toggle{display:none;position:fixed;top:0.75rem;left:0.75rem;z-index:200;width:38px;height:38px;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:1.1rem;align-items:center;justify-content:center;cursor:pointer}
+@media(max-width:768px){
+.sidebar{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.main{margin-left:0;padding:1rem;padding-top:3.5rem}
+.mobile-toggle{display:flex}
+.form-grid{grid-template-columns:1fr}
+.row{flex-wrap:wrap}
+.row-actions{width:100%;margin-top:6px;margin-left:0}
+.table-header{flex-direction:column;gap:0.5rem}
+.table-search{width:100%}
+.stats-grid{grid-template-columns:1fr 1fr}
+.ncmine-section{padding:1.25rem}
+}
+
+/* CONFIRM DIALOG */
+.confirm-overlay{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.85);justify-content:center;align-items:center;padding:1.5rem}
+.confirm-overlay.open{display:flex}
+.confirm-dialog{background:#111;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:2rem;max-width:420px;width:100%;text-align:center}
+.confirm-dialog h3{font-size:1.1rem;margin-bottom:0.5rem}
+.confirm-dialog p{color:#888;font-size:0.88rem;margin-bottom:1.5rem}
+.confirm-actions{display:flex;gap:8px;justify-content:center}
+
+/* IMPORT AREA */
+.import-area{border:2px dashed rgba(255,255,255,0.1);border-radius:14px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(255,255,255,0.02)}
+.import-area:hover{border-color:#00c853;background:rgba(0,200,83,0.05)}
+.import-area.dragover{border-color:#00e676;background:rgba(0,200,83,0.1)}
+.import-area p{color:#666;font-size:0.88rem;margin-top:0.5rem}
+.import-area .import-icon{font-size:2.5rem;margin-bottom:0.5rem}
+
+/* TABS */
+.tabs{display:flex;gap:2px;margin-bottom:1.25rem;background:rgba(255,255,255,0.03);padding:4px;border-radius:12px;overflow-x:auto}
+.tab{padding:8px 16px;border-radius:10px;font-size:0.82rem;font-weight:600;color:#888;cursor:pointer;transition:all 0.2s;white-space:nowrap;border:none;background:none;font-family:'Inter',sans-serif}
+.tab:hover{color:#ccc}
+.tab.active{background:rgba(0,200,83,0.12);color:#00c853}
+</style>
+</head>
+<body>
+<button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+<div class="sidebar-logo">🧩 Mineaddonsnews</div>
+<div class="sidebar-sub">Painel Ultra Admin v2</div>
+<div class="sidebar-nav">
+<div class="sidebar-section">Principal</div>
+<button class="sidebar-link active" data-section="dashboard" onclick="navigateTo('dashboard')">📊 Dashboard</button>
+<button class="sidebar-link" data-section="addons" onclick="navigateTo('addons')">📦 Addons</button>
+<button class="sidebar-link" data-section="categories" onclick="navigateTo('categories')">🏷️ Categorias</button>
+
+<div class="sidebar-section">Exclusivo</div>
+<button class="sidebar-link" data-section="ncmine" onclick="navigateTo('ncmine')">👑 NCMine</button>
+<button class="sidebar-link" data-section="creators" onclick="navigateTo('creators')">👤 Criadores</button>
+
+<div class="sidebar-section">Sistema</div>
+<button class="sidebar-link" data-section="config" onclick="navigateTo('config')">⚙️ Configurações</button>
+<button class="sidebar-link" data-section="import" onclick="navigateTo('import')">📥 Import/Export</button>
+<button class="sidebar-link" data-section="logs" onclick="navigateTo('logs')">📋 Logs</button>
+<button class="sidebar-link" onclick="window.open('index.html','_blank')">🌐 Ver site</button>
+</div>
+<div class="sidebar-footer">
+<div class="sidebar-user">
+<div class="sidebar-avatar" id="userAvatar">A</div>
+<div class="sidebar-user-info">
+<div class="sidebar-user-name" id="userName">Admin</div>
+<div class="sidebar-user-role">Administrador</div>
+</div>
+</div>
+<button class="logout-btn" onclick="logout()">🚪 Sair da conta</button>
+</div>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+<!-- DASHBOARD -->
+<div id="section-dashboard" class="section active">
+<div class="main-header">
+<h1>📊 Dashboard</h1>
+<div class="header-actions">
+<button class="btn btn-primary" onclick="navigateTo('addons');openAddonForm()">+ Novo Addon</button>
+<button class="btn btn-secondary" onclick="exportAddonsJSON()">📥 Exportar JSON</button>
+<button class="btn btn-secondary" onclick="generateJSON()">📄 Gerar JSON</button>
+</div>
+</div>
+<div class="stats-grid">
+<div class="stat-card green"><div class="stat-card-label">Total Addons</div><div class="stat-card-value" id="statTotal">0</div><div class="stat-card-change" id="statTotalChange"></div></div>
+<div class="stat-card gold"><div class="stat-card-label">Downloads</div><div class="stat-card-value" id="statDownloads">0</div><div class="stat-card-change" id="statDlChange"></div></div>
+<div class="stat-card purple"><div class="stat-card-label">Categorias</div><div class="stat-card-value" id="statCategories">0</div></div>
+<div class="stat-card red"><div class="stat-card-label">Criadores</div><div class="stat-card-value" id="statCreators">0</div></div>
+</div>
+<!-- Top Addons Chart -->
+<div class="chart-container">
+<h3>🏆 Top 8 Addons por Downloads</h3>
+<div id="topAddonsChart"></div>
+</div>
+<!-- Category Distribution -->
+<div class="chart-container">
+<h3>📦 Distribuição por Categoria</h3>
+<div id="categoryChart"></div>
+</div>
+</div>
+
+<!-- ADDONS -->
+<div id="section-addons" class="section">
+<div class="main-header">
+<h1>📦 Addons</h1>
+<div class="header-actions">
+<button class="btn btn-primary" onclick="openAddonForm()">+ Novo Addon</button>
+<button class="btn btn-secondary" id="toggleReorderBtn" onclick="toggleReorderMode()">🔀 Reordenar</button>
+<button class="btn btn-danger btn-sm" id="bulkDeleteBtn" style="display:none" onclick="bulkDelete()">🗑️ Excluir Selecionados</button>
+<button class="btn btn-warn btn-sm" id="bulkCatBtn" style="display:none" onclick="bulkChangeCategory()">🏷️ Mudar Categoria</button>
+</div>
+</div>
+<div class="table-container">
+<div class="table-header">
+<h3>Todos os Addons</h3>
+<div class="table-header-actions">
+<input type="text" class="table-search" id="addonSearch" placeholder="🔍 Buscar..." oninput="renderAddonList()">
+<select id="addonCatFilter" style="padding:7px 10px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-size:0.82rem" onchange="renderAddonList()">
+<option value="">Todas categorias</option>
+</select>
+<button class="btn btn-sm btn-primary" id="saveOrderBtn" style="display:none" onclick="saveAddonOrder()">💾 Salvar Ordem</button>
+</div>
+</div>
+<div class="bulk-bar" id="bulkBar">
+<span class="count" id="bulkCount">0 selecionados</span>
+<button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑️ Excluir</button>
+<button class="btn btn-warn btn-sm" onclick="bulkChangeCategory()">🏷️ Categoria</button>
+<button class="btn btn-secondary btn-sm" onclick="clearSelection()">✕ Limpar</button>
+</div>
+<div id="addonList"></div>
+</div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="section-categories" class="section">
+<div class="form-panel">
+<h2>🏷️ Gerenciar Categorias</h2>
+<div class="form-grid">
+<div class="form-group full">
+<label>Adicionar Nova</label>
+<div style="display:flex;gap:6px">
+<input type="text" id="newCategoryName" placeholder="Nome da categoria" style="flex:1">
+<select id="newCategoryIcon" style="width:60px;padding:8px;background:#1a1a1a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;color:#fff;font-size:1rem">
+<option value="📦">📦</option><option value="🐉">🐉</option><option value="👤">👤</option><option value="⚔️">⚔️</option><option value="🗺️">🗺️</option><option value="🏠">🏠</option><option value="🚗">🚗</option><option value="⚙️">⚙️</option><option value="🌲">🌲</option><option value="🎮">🎮</option><option value="🍖">🍖</option><option value="🧱">🧱</option><option value="🔧">🔧</option><option value="✨">✨</option><option value="👑">👑</option><option value="🔥">🔥</option><option value="💎">💎</option>
+</select>
+<input type="color" id="newCategoryColor" value="#00c853" style="width:44px;height:40px;border:2px solid rgba(255,255,255,0.1);border-radius:10px;cursor:pointer;background:none;padding:2px">
+<button class="btn btn-primary" onclick="addCategory()">➕</button>
+</div>
+</div>
+<div class="form-group full">
+<label>Categorias Existentes (clique ✏️ para editar)</label>
+<div class="categories-list" id="categoriesList"></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- NCMINE EDITOR -->
+<div id="section-ncmine" class="section">
+<div class="ncmine-section">
+<h2>👑 Editor da Categoria NCMine</h2>
+<p style="color:rgba(255,215,64,0.6);font-size:0.82rem;margin-bottom:1.25rem">Edite completamente como a categoria "Addons do NCMine" aparece no site. Altere nome, ícone, cor, banner e descrição.</p>
+<div class="form-grid">
+<div class="form-group ncmine-field">
+<label>Nome da Categoria</label>
+<input type="text" id="nc_name" value="Addons do NCMine" placeholder="Nome exibido no site">
+</div>
+<div class="form-group ncmine-field">
+<label>Slug (URL)</label>
+<input type="text" id="nc_slug" value="addons-do-ncmine" placeholder="addons-do-ncmine">
+</div>
+<div class="form-group ncmine-field">
+<label>Ícone</label>
+<div class="icon-picker" id="ncIconPicker"></div>
+</div>
+<div class="form-group ncmine-field">
+<label>Cor Principal</label>
+<div class="color-picker-row">
+<input type="color" id="nc_color" value="#ffd740">
+<input type="text" id="nc_colorText" value="#ffd740" oninput="document.getElementById('nc_color').value=this.value">
+</div>
+</div>
+<div class="form-group ncmine-field">
+<label>Cor de Fundo do Banner</label>
+<div class="color-picker-row">
+<input type="color" id="nc_bgColor" value="#1a1200">
+<input type="text" id="nc_bgColorText" value="#1a1200" oninput="document.getElementById('nc_bgColor').value=this.value">
+</div>
+</div>
+<div class="form-group ncmine-field">
+<label>Título do Banner</label>
+<input type="text" id="nc_bannerTitle" value="Addons do NCMine — Coleção Exclusiva">
+</div>
+<div class="form-group ncmine-field">
+<label>Subtítulo do Banner</label>
+<input type="text" id="nc_bannerSub" value="Os addons mais populares feitos pelo NCMine. Qualidade garantida!">
+</div>
+<div class="form-group ncmine-field">
+<label>Texto do Botão</label>
+<input type="text" id="nc_btnText" value="Ver todos ➜">
+</div>
+<div class="form-group ncmine-field full">
+<label>Descrição da Categoria</label>
+<textarea id="nc_description" rows="3" placeholder="Descrição que aparece na página da categoria...">Addons exclusivos criados pelo NCMine com qualidade premium. Todos testados e verificados!</textarea>
+</div>
+<div class="form-group ncmine-field full">
+<label>Regras de Filtro (addons serão incluídos se...)</label>
+<div style="display:flex;flex-direction:column;gap:6px">
+<label style="font-size:0.75rem;color:#888"><input type="checkbox" id="nc_filterAuthor" checked> Autor contém "ncmine"</label>
+<label style="font-size:0.75rem;color:#888"><input type="checkbox" id="nc_filterName"> Nome contém "ncmine"</label>
+<label style="font-size:0.75rem;color:#888"><input type="checkbox" id="nc_filterCategory" checked> Categoria = "Addons do NCMine"</label>
+</div>
+</div>
+</div>
+<div style="margin-top:0.75rem;padding:1rem;background:rgba(255,215,64,0.05);border:1px solid rgba(255,215,64,0.15);border-radius:10px">
+<label style="font-size:0.75rem;color:rgba(255,215,64,0.7);text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Preview do Banner</label>
+<div id="ncBannerPreview" style="margin-top:8px;border-radius:10px;padding:1rem;display:flex;align-items:center;gap:0.75rem;cursor:pointer;transition:all 0.3s"></div>
+</div>
+<div class="form-actions">
+<button class="btn btn-gold" onclick="saveNCMineConfig()">💾 Salvar NCMine</button>
+<button class="btn btn-secondary" onclick="loadNCMineConfig()">↩️ Restaurar</button>
+</div>
+</div>
+
+<!-- NCMine Addons -->
+<!-- NCMine Addons -->
+<div class="form-panel" style="border-color:rgba(255,215,64,0.15)">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+<h2>📦 Addons do NCMine (<span id="ncmineAddonsCount">0</span>)</h2>
+<button class="btn btn-gold btn-sm" onclick="openFastNCMineAddon()">⚡ Adicionar NCMine Rápido</button>
+</div>
+<div id="ncmineAddonsList"></div>
+</div>
+</div>
+
+<!-- CREATORS -->
+<div id="section-creators" class="section">
+<div class="main-header">
+<h1>👤 Criadores (Linktree)</h1>
+<button class="btn btn-primary" onclick="openCreatorForm()">+ Novo Criador</button>
+</div>
+<div class="table-container">
+<div class="table-header">
+<h3>Criadores</h3>
+<input type="text" class="table-search" id="creatorSearch" placeholder="🔍 Buscar..." oninput="renderCreatorList()">
+</div>
+<div id="creatorList"></div>
+</div>
+</div>
+
+<!-- CONFIG -->
+<div id="section-config" class="section">
+<div class="form-panel">
+<h2>⚙️ Configurações Globais do Site</h2>
+<div class="form-grid">
+<div class="form-group"><label>Nome do Site</label><input type="text" id="cfg_siteName"></div>
+<div class="form-group"><label>URL da Logo</label><input type="text" id="cfg_siteLogo"></div>
+<div class="form-group"><label>Base Downloads</label><input type="number" id="cfg_baseDownloads"></div>
+<div class="form-group"><label>Addon Viral do Dia</label><select id="cfg_viralAddon"><option value="">Nenhum</option></select></div>
+<div class="form-group"><label>Meta Description (SEO)</label><input type="text" id="cfg_metaDesc" placeholder="Descrição para SEO..."></div>
+<div class="form-group"><label>Cor Primária</label>
+<div class="color-picker-row"><input type="color" id="cfg_primaryColor" value="#00c853"><input type="text" id="cfg_primaryColorText" value="#00c853" oninput="document.getElementById('cfg_primaryColor').value=this.value"></div>
+</div>
+<div class="form-group full"><label>Título Principal (Hero)</label><input type="text" id="cfg_heroTitle" placeholder="HTML permitido. Ex: Descubra os melhores<br><span class='highlight minecraft-drop'>Addons</span>"></div>
+<div class="form-group full"><label>Subtítulo Principal (Hero)</label><textarea id="cfg_heroSubtitle" rows="2"></textarea></div>
+<div class="form-group full"><label>URL do Vídeo Tutorial (Embed)</label><input type="text" id="cfg_videoUrl" placeholder="https://www.youtube.com/embed/..."></div>
+<div class="form-group full"><label>Texto do Rodapé</label><input type="text" id="cfg_footerText" placeholder="A melhor coleção de addons..."></div>
+</div>
+<div class="form-actions"><button class="btn btn-primary" onclick="saveConfig()">💾 Salvar Configurações</button></div>
+</div>
+</div>
+
+<!-- IMPORT/EXPORT -->
+<div id="section-import" class="section">
+<div class="main-header"><h1>📥 Import / Export</h1></div>
+<div class="form-panel">
+<h2>📤 Exportar Dados</h2>
+<div class="form-grid">
+<div class="form-group"><button class="btn btn-primary" onclick="generateJSON()" style="width:100%;justify-content:center">📄 Exportar Addons (JSON)</button></div>
+<div class="form-group"><button class="btn btn-secondary" onclick="exportFullBackup()" style="width:100%;justify-content:center">💾 Backup Completo</button></div>
+</div>
+</div>
+<div class="form-panel">
+<h2>📥 Importar Dados</h2>
+<div class="import-area" id="importArea" onclick="document.getElementById('importFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleImportDrop(event)">
+<div class="import-icon">📂</div>
+<p>Arraste um arquivo JSON aqui ou clique para selecionar</p>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImportFile(this)">
+</div>
+<div style="margin-top:0.75rem;display:flex;gap:6px">
+<button class="btn btn-warn btn-sm" onclick="importToFirebase()">📥 Importar para Firebase</button>
+<button class="btn btn-danger btn-sm" onclick="confirmOverwriteImport()">⚠️ Sobrescrever Firebase</button>
+</div>
+</div>
+</div>
+
+<!-- LOGS -->
+<div id="section-logs" class="section">
+<div class="main-header"><h1>📋 Logs de Atividade</h1><button class="btn btn-secondary btn-sm" onclick="clearLogs()">🗑️ Limpar Logs</button></div>
+<div class="form-panel">
+<div class="activity-list" id="activityLog"></div>
+<div id="emptyLogs" style="text-align:center;color:#555;padding:2rem">Nenhuma atividade registrada.</div>
+</div>
+</div>
+
+</main>
+
+<!-- ADDON FORM MODAL -->
+<div class="modal-overlay" id="addonModal">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="addonFormTitle">➕ Novo Addon</h2>
+<input type="hidden" id="editAddonId">
+<div style="background: rgba(0, 200, 83, 0.05); border: 1px solid rgba(0, 200, 83, 0.2); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+    <label style="color:var(--green-primary); font-weight:700; margin:0;">⚡ Extração Inteligente (Auto-Preencher)</label>
+    <button class="btn btn-secondary btn-xs" onclick="smartExtract()">🪄 Extrair</button>
+  </div>
+  <textarea id="smartPasteArea" rows="2" placeholder="Cole aqui o texto, links, imagens ou HTML do addon e clique em Extrair..." style="background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.2);"></textarea>
+  <p style="font-size:0.75rem; color:#888; margin-top:5px;">Esta ferramenta tentará ler URLs de imagens, links de download e descrição do texto colado automaticamente.</p>
+</div>
+<div class="form-grid">
+<div class="form-group"><label>Nome *</label><input id="a_nome" required></div>
+<div class="form-group"><label>Versão</label><input id="a_versao" placeholder="1.0.0"></div>
+<div class="form-group"><label>Categoria</label><select id="a_categoria"><option value="">Selecione</option></select></div>
+<div class="form-group"><label>Rating</label><input type="number" id="a_rating" min="1" max="5" step="0.5" value="4.5"></div>
+<div class="form-group"><label>Autor</label><input id="a_autor"></div>
+<div class="form-group"><label>Downloads</label><input type="number" id="a_downloads" value="0"></div>
+<div class="form-group"><label>Fixar no topo?</label><select id="a_pinned"><option value="false">Não</option><option value="true">Sim</option></select></div>
+<div class="form-group"><label>Destaque NCMine?</label><select id="a_ncmine"><option value="false">Não</option><option value="true">Sim</option></select></div>
+<div class="form-group full"><label>Link Download *</label><input id="a_link" required placeholder="https://..."></div>
+<div class="form-group full"><label>Descrição Curta</label><textarea id="a_descricao" rows="2"></textarea></div>
+<div class="form-group full"><label>Descrição Completa</label><textarea id="a_descricaoCompleta" rows="4"></textarea></div>
+<div class="form-group full"><label>Imagens (URLs, uma por linha)</label><textarea id="a_imagens" rows="3" oninput="previewAddonImages()"></textarea><div class="image-preview" id="a_preview"></div></div>
+<div class="form-group full"><label>Instruções de Instalação</label><textarea id="a_instrucoes" rows="3" placeholder="Passo 1&#10;Passo 2&#10;Passo 3"></textarea></div>
+</div>
+<div class="form-actions">
+<button class="btn btn-primary" onclick="saveAddon()">💾 Salvar</button>
+<button class="btn btn-secondary" onclick="closeModals()">Cancelar</button>
+</div>
+</div>
+</div>
+
+<!-- CREATOR FORM MODAL -->
+<div class="modal-overlay" id="creatorModal">
+<div class="modal" onclick="event.stopPropagation()">
+<h2 id="creatorFormTitle">➕ Novo Criador</h2>
+<input type="hidden" id="editCreatorId">
+<div class="form-grid">
+<div class="form-group"><label>Nome *</label><input id="c_nome"></div>
+<div class="form-group"><label>Slug (URL)</label><input id="c_slug" placeholder="nome-do-criador"><span class="hint">Deixe em branco para gerar auto</span></div>
+<div class="form-group"><label>Foto (URL)</label><input id="c_foto"></div>
+<div class="form-group"><label>Verificado?</label><select id="c_verificado"><option value="false">Não</option><option value="true">Sim</option></select></div>
+<div class="form-group"><label>YouTube (URL)</label><input id="c_youtube" placeholder="https://youtube.com/..."></div>
+<div class="form-group"><label>Twitter/X (URL)</label><input id="c_twitter" placeholder="https://twitter.com/..."></div>
+<div class="form-group"><label>Discord (URL)</label><input id="c_discord" placeholder="https://discord.gg/..."></div>
+<div class="form-group"><label>Website/Link (URL)</label><input id="c_website" placeholder="https://..."></div>
+<div class="form-group full"><label>Descrição</label><textarea id="c_descricao" rows="2"></textarea></div>
+<div class="form-group full"><label>Addons Destaque</label><div id="c_addonsCheck" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:180px;overflow-y:auto;padding:6px;background:#1a1a1a;border-radius:10px;border:1px solid rgba(255,255,255,0.08)"></div></div>
+</div>
+<div class="form-actions">
+<button class="btn btn-primary" onclick="saveCreator()">💾 Salvar</button>
+<button class="btn btn-secondary" onclick="closeModals()">Cancelar</button>
+</div>
+</div>
+</div>
+
+<!-- CATEGORY EDIT MODAL -->
+<div class="modal-overlay" id="categoryEditModal">
+<div class="modal" onclick="event.stopPropagation()">
+<h2>✏️ Editar Categoria</h2>
+<input type="hidden" id="editCatIndex">
+<div class="form-grid">
+<div class="form-group full"><label>Nome</label><input id="ce_name"></div>
+<div class="form-group"><label>Ícone</label>
+<div class="icon-picker" id="catIconPicker"></div>
+</div>
+<div class="form-group"><label>Cor</label>
+<div class="color-picker-row"><input type="color" id="ce_color" value="#00c853"><input type="text" id="ce_colorText" value="#00c853" oninput="document.getElementById('ce_color').value=this.value"></div>
+</div>
+</div>
+<div class="form-actions">
+<button class="btn btn-primary" onclick="saveCategoryEdit()">💾 Salvar</button>
+<button class="btn btn-secondary" onclick="closeModals()">Cancelar</button>
+</div>
+</div>
+</div>
+
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirmOverlay">
+<div class="confirm-dialog">
+<h3 id="confirmTitle">Confirmar</h3>
+<p id="confirmMsg">Tem certeza?</p>
+<div class="confirm-actions">
+<button class="btn btn-danger" id="confirmYes">Sim, confirmar</button>
+<button class="btn btn-secondary" onclick="closeConfirm()">Cancelar</button>
+</div>
+</div>
+</div>
+
+<!-- BULK CATEGORY CHANGE MODAL -->
+<div class="modal-overlay" id="bulkCatModal">
+<div class="modal" onclick="event.stopPropagation()">
+<h2>🏷️ Mudar Categoria dos Selecionados</h2>
+<div class="form-grid">
+<div class="form-group full"><label>Nova Categoria</label><select id="bulkNewCat"><option value="">Selecione</option></select></div>
+</div>
+<div class="form-actions">
+<button class="btn btn-primary" onclick="applyBulkCategory()">Aplicar</button>
+<button class="btn btn-secondary" onclick="closeModals()">Cancelar</button>
+</div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyAKcFlRmCjuQ35hiGnlDmOPO1P4VdjGZqw",authDomain:"mineaddonsnews-web.firebaseapp.com",databaseURL:"https://mineaddonsnews-web-default-rtdb.firebaseio.com",projectId:"mineaddonsnews-web",storageBucket:"mineaddonsnews-web.firebasestorage.app",messagingSenderId:"877653857210",appId:"1:877653857210:web:13cbd8a9d58d611600c383"};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(),db=firebase.database();
+
+let allAddons=[],allCreators=[],categories=[],categoryMeta={},ncmineConfig={},reorderMode=false,draggedRow=null,selectedAddons=new Set(),pendingImportData=null;
+
+const ICONS=['📦','🐉','👤','⚔️','🗺️','🏠','🚗','⚙️','🌲','🎮','🍖','🧱','🔧','✨','👑','🔥','💎','🎯','🌟','🎪'];
+
+// Auth
+auth.onAuthStateChanged(user=>{
+if(!user)return window.location.href='admin.html';
+const email=user.email||'Admin';
+document.getElementById('userName').textContent=email.split('@')[0];
+document.getElementById('userAvatar').textContent=email.charAt(0).toUpperCase();
+loadAllData();
+});
+
+function logout(){if(confirm('Sair da conta?'))auth.signOut()}
+
+// Load all data
+function loadAllData(){
+// Categories
+db.ref('categorias').on('value',snap=>{
+const raw=snap.val();
+if(Array.isArray(raw)){categories=raw;categoryMeta={}}
+else if(raw&&typeof raw==='object'){categories=Object.keys(raw);categoryMeta=raw}
+else{categories=['Mobs','Skin','Armas','Mapa','Decoração','Veículos','Tecnologia','Biomas','RPG','Comida','Blocos','Ferramentas','Magia','Addons do NCMine'];categoryMeta={}}
+if(!snap.exists())db.ref('categorias').set(categories);
+updateCategorySelects();renderCategoriesList();
+document.getElementById('statCategories').textContent=categories.length;
+});
+
+// Addons
+db.ref('addons').on('value',snap=>{
+allAddons=[];
+if(snap.exists())Object.entries(snap.val()).forEach(([id,data])=>allAddons.push({id,...data}));
+updateStats();renderAddonList();updateAddonCheckboxes();renderNCMineAddons();updateAddonCatFilter();
+});
+
+// Creators
+db.ref('creators').on('value',snap=>{
+allCreators=[];
+if(snap.exists())Object.entries(snap.val()).forEach(([id,data])=>allCreators.push({id,...data}));
+document.getElementById('statCreators').textContent=allCreators.length;
+renderCreatorList();
+});
+
+// Site config
+loadConfig();
+
+// NCMine config
+db.ref('ncmineConfig').on('value',snap=>{
+if(snap.exists()){ncmineConfig=snap.val();populateNCMineForm()}
+else{
+ncmineConfig={name:'Addons do NCMine',slug:'addons-do-ncmine',icon:'👑',color:'#ffd740',bgColor:'#1a1200',bannerTitle:'Addons do NCMine — Coleção Exclusiva',bannerSub:'Os addons mais populares feitos pelo NCMine. Qualidade garantida!',btnText:'Ver todos ➜',description:'Addons exclusivos criados pelo NCMine com qualidade premium. Todos testados e verificados!',filterAuthor:true,filterName:false,filterCategory:true};
+db.ref('ncmineConfig').set(ncmineConfig);
+}
+updateNCBannerPreview();
+});
+
+// Activity logs
+db.ref('activityLog').orderByChild('timestamp').limitToLast(50).on('value',snap=>{
+const logs=[];
+if(snap.exists())Object.values(snap.val()).forEach(l=>logs.push(l));
+logs.sort((a,b)=>b.timestamp-a.timestamp);
+renderActivityLog(logs);
+});
+}
+
+function loadConfig(){
+db.ref('siteConfig').once('value',s=>{
+if(!s.exists())return;
+const c=s.val();
+document.getElementById('cfg_siteName').value=c.siteName||'Mineaddonsnews';
+document.getElementById('cfg_siteLogo').value=c.siteLogo||'';
+document.getElementById('cfg_baseDownloads').value=c.baseDownloads||15423;
+document.getElementById('cfg_viralAddon').value=c.viralAddonId||'';
+document.getElementById('cfg_metaDesc').value=c.metaDescription||'';
+document.getElementById('cfg_primaryColor').value=c.primaryColor||'#00c853';
+document.getElementById('cfg_primaryColorText').value=c.primaryColor||'#00c853';
+document.getElementById('cfg_heroTitle').value=c.heroTitle||'Descubra os melhores<br><span class="highlight minecraft-drop">Addons para Minecraft</span>';
+document.getElementById('cfg_heroSubtitle').value=c.heroSubtitle||'A coleção mais completa de addons para Bedrock e Java. Download rápido, seguro e 100% gratuito.';
+document.getElementById('cfg_videoUrl').value=c.videoUrl||'https://www.youtube.com/embed/fN4BennXjTY';
+document.getElementById('cfg_footerText').value=c.footerText||'A melhor coleção de addons para Minecraft. 100% gratuito.';
+});
+}
+
+function saveConfig(){
+const c={
+siteName:document.getElementById('cfg_siteName').value.trim(),
+siteLogo:document.getElementById('cfg_siteLogo').value.trim(),
+baseDownloads:parseInt(document.getElementById('cfg_baseDownloads').value)||0,
+viralAddonId:document.getElementById('cfg_viralAddon').value,
+metaDescription:document.getElementById('cfg_metaDesc').value.trim(),
+primaryColor:document.getElementById('cfg_primaryColor').value,
+heroTitle:document.getElementById('cfg_heroTitle').value.trim(),
+heroSubtitle:document.getElementById('cfg_heroSubtitle').value.trim(),
+videoUrl:document.getElementById('cfg_videoUrl').value.trim(),
+footerText:document.getElementById('cfg_footerText').value.trim(),
+lastUpdate:Date.now()
+};
+db.ref('siteConfig').set(c).then(()=>{showToast('Configurações salvas!');logActivity('edit_config','Configurações globais')}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+// Stats
+function updateStats(){
+document.getElementById('statTotal').textContent=allAddons.length;
+const total=allAddons.reduce((s,a)=>s+(a.downloads||0),0);
+document.getElementById('statDownloads').textContent=total.toLocaleString('pt-BR');
+renderTopAddonsChart();renderCategoryChart();
+}
+
+// Charts
+function renderTopAddonsChart(){
+const sorted=[...allAddons].sort((a,b)=>(b.downloads||0)-(a.downloads||0)).slice(0,8);
+const max=sorted[0]?.downloads||1;
+document.getElementById('topAddonsChart').innerHTML=sorted.map(a=>{
+const pct=Math.max(5,((a.downloads||0)/max)*100);
+return`<div class="chart-bar-row"><div class="chart-bar-label" title="${a.nome}">${a.nome}</div><div class="chart-bar-track"><div class="chart-bar-fill green" style="width:${pct}%">${a.downloads>999?formatN(a.downloads):a.downloads||0}</div></div><div class="chart-bar-value">${formatN(a.downloads||0)}</div></div>`;
+}).join('');
+}
+
+function renderCategoryChart(){
+const counts={};
+allAddons.forEach(a=>{const c=a.categoria||'Geral';counts[c]=(counts[c]||0)+1});
+const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+const max=sorted[0]?.[1]||1;
+const colors=['green','gold','purple','green','gold','purple','green','gold'];
+document.getElementById('categoryChart').innerHTML=sorted.map(([cat,count],i)=>{
+const pct=Math.max(5,(count/max)*100);
+return`<div class="chart-bar-row"><div class="chart-bar-label" title="${cat}">${cat}</div><div class="chart-bar-track"><div class="chart-bar-fill ${colors[i%3]}" style="width:${pct}%">${count}</div></div><div class="chart-bar-value">${count}</div></div>`;
+}).join('');
+}
+
+function formatN(n){return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(1)+'K':n.toString()}
+
+// Navigation
+function navigateTo(section){
+document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+document.getElementById('section-'+section)?.classList.add('active');
+document.querySelectorAll('.sidebar-link').forEach(l=>l.classList.remove('active'));
+document.querySelector(`.sidebar-link[data-section="${section}"]`)?.classList.add('active');
+if(section==='addons')renderAddonList();
+if(section==='creators')renderCreatorList();
+if(section==='ncmine'){renderNCMineAddons();updateNCBannerPreview()}
+document.querySelector('.sidebar')?.classList.remove('open');
+}
+
+// ADDONS CRUD
+function openAddonForm(id=null){
+document.getElementById('addonModal').classList.add('open');
+updateCategorySelects();
+if(id){
+const a=allAddons.find(x=>x.id===id);
+document.getElementById('addonFormTitle').textContent='✏️ Editar: '+a.nome;
+document.getElementById('editAddonId').value=id;
+document.getElementById('a_nome').value=a.nome||'';
+document.getElementById('a_versao').value=a.versao||'';
+document.getElementById('a_categoria').value=a.categoria||'';
+document.getElementById('a_rating').value=a.rating||4.5;
+document.getElementById('a_autor').value=a.autor||'';
+document.getElementById('a_downloads').value=a.downloads||0;
+document.getElementById('a_pinned').value=a.pinned?'true':'false';
+document.getElementById('a_ncmine').value=(a.isNCMine||a.categoria==='Addons do NCMine')?'true':'false';
+document.getElementById('a_link').value=a.link||'';
+document.getElementById('a_descricao').value=a.descricao||'';
+document.getElementById('a_descricaoCompleta').value=a.descricaoCompleta||'';
+document.getElementById('a_imagens').value=Array.isArray(a.imagens)?a.imagens.join('\n'):'';
+document.getElementById('a_instrucoes').value=a.instrucoes||'';
+previewAddonImages();
+}else{
+document.getElementById('addonFormTitle').textContent='➕ Novo Addon';
+document.getElementById('editAddonId').value='';
+['a_nome','a_versao','a_categoria','a_rating','a_autor','a_downloads','a_pinned','a_ncmine','a_link','a_descricao','a_descricaoCompleta','a_imagens','a_instrucoes'].forEach(f=>document.getElementById(f).value='');
+document.getElementById('a_downloads').value=0;
+document.getElementById('a_rating').value=4.5;
+document.getElementById('a_pinned').value='false';
+document.getElementById('a_ncmine').value='false';
+document.getElementById('a_preview').innerHTML='';
+}
+}
+
+function saveAddon(){
+const id=document.getElementById('editAddonId').value;
+const nome=document.getElementById('a_nome').value.trim();
+const link=document.getElementById('a_link').value.trim();
+if(!nome||!link)return showToast('Nome e Link são obrigatórios!','error');
+
+const isNCMine=document.getElementById('a_ncmine').value==='true';
+let categoria=document.getElementById('a_categoria').value;
+if(isNCMine&&categoria!=='Addons do NCMine')categoria='Addons do NCMine';
+
+const addonData={nome,versao:document.getElementById('a_versao').value.trim(),categoria,link,descricao:document.getElementById('a_descricao').value.trim(),descricaoCompleta:document.getElementById('a_descricaoCompleta').value.trim(),imagens:document.getElementById('a_imagens').value.split('\n').map(s=>s.trim()).filter(Boolean),instrucoes:document.getElementById('a_instrucoes').value.trim(),rating:parseFloat(document.getElementById('a_rating').value)||4.5,autor:document.getElementById('a_autor').value.trim(),downloads:parseInt(document.getElementById('a_downloads').value)||0,pinned:document.getElementById('a_pinned').value==='true',isNCMine,order:id?(allAddons.find(a=>a.id===id)?.order||0):(allAddons.length>0?Math.max(...allAddons.map(a=>a.order||0))+1:0),timestamp:id?(allAddons.find(a=>a.id===id)?.timestamp||Date.now()):Date.now()};
+
+if(addonData.categoria&&!categories.includes(addonData.categoria)){categories.push(addonData.categoria);categories.sort();db.ref('categorias').set(categories)}
+
+const action=id?'update':'create';
+(id?db.ref('addons/'+id).update(addonData):db.ref('addons').push(addonData))
+.then(()=>{showToast(id?'Addon atualizado!':'Addon adicionado!');logActivity(id?'edit_addon':'create_addon',nome);closeModals()})
+.catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+function deleteAddon(id,name){
+showConfirm('Excluir Addon',`Excluir "${name}"? Esta ação não pode ser desfeita.`,()=>{
+db.ref('addons/'+id).remove().then(()=>{showToast('Addon excluído.');logActivity('delete_addon',name)}).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+function renderAddonList(){
+const searchTerm=(document.getElementById('addonSearch')?.value||'').toLowerCase();
+const catFilter=document.getElementById('addonCatFilter')?.value||'';
+let filtered=allAddons.filter(a=>(a.nome||'').toLowerCase().includes(searchTerm));
+if(catFilter)filtered=filtered.filter(a=>a.categoria===catFilter);
+
+filtered.sort((a,b)=>{
+if(a.pinned&&!b.pinned)return-1;if(!a.pinned&&b.pinned)return 1;
+const oa=a.order||0,ob=b.order||0;if(oa!==ob)return oa-ob;
+return(a.nome||'').localeCompare(b.nome||'');
+});
+
+const container=document.getElementById('addonList');
+container.innerHTML=filtered.map(a=>{
+const imgHTML=a.imagens&&a.imagens.length>0?`<img class="row-img" src="${a.imagens[0]}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+const phHTML=(!a.imagens||a.imagens.length===0)?`<div class="row-img-placeholder">🧩</div>`:`<div class="row-img-placeholder" style="display:none">🧩</div>`;
+const drag=reorderMode?`<span class="drag-handle" draggable="true" data-id="${a.id}" ondragstart="dragStart(event)" ondragend="dragEnd(event)" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="drop(event)">⋮⋮</span>`:'';
+const checked=selectedAddons.has(a.id)?'checked':'';
+const isNC=(a.isNCMine||a.categoria==='Addons do NCMine'||(a.autor||'').toLowerCase().includes('ncmine'));
+
+return`<div class="row ${selectedAddons.has(a.id)?'selected':''}" data-id="${a.id}" draggable="${reorderMode?'true':'false'}">
+${drag}
+<input type="checkbox" class="row-check" ${checked} onchange="toggleSelect('${a.id}',this.checked)">
+${imgHTML}${phHTML}
+<div class="row-info">
+<div class="row-name">${a.nome}${a.pinned?'<span class="pinned-badge">📌 Fixo</span>':''}${isNC?'<span class="ncmine-badge">👑 NCMine</span>':''}</div>
+<div class="row-meta">
+<span>📦 ${a.categoria||'?'}</span>
+<span>📱 v${a.versao||'?'}</span>
+<span>⬇️ ${(a.downloads||0).toLocaleString('pt-BR')}</span>
+<span>⭐ ${a.rating||'—'}</span>
+${a.autor?`<span>👤 ${a.autor}</span>`:''}
+</div>
+</div>
+<div class="row-actions">
+<button class="btn btn-secondary btn-xs" onclick="openAddonForm('${a.id}')">✏️</button>
+<button class="btn btn-secondary btn-xs" onclick="duplicateAddon('${a.id}')">📋</button>
+<button class="btn btn-danger btn-xs" onclick="deleteAddon('${a.id}','${(a.nome||'').replace(/'/g,"\\'")}')">🗑️</button>
+</div>
+</div>`;
+}).join('');
+
+if(!filtered.length)container.innerHTML='<div style="padding:2rem;text-align:center;color:#555">Nenhum addon encontrado.</div>';
+updateBulkBar();
+}
+
+function updateAddonCatFilter(){
+const sel=document.getElementById('addonCatFilter');
+const val=sel?.value||'';
+if(sel){sel.innerHTML='<option value="">Todas categorias</option>'+categories.map(c=>`<option value="${c}" ${c===val?'selected':''}>${c}</option>`).join('')}
+}
+
+function duplicateAddon(id){
+const a=allAddons.find(x=>x.id===id);
+if(!a)return;
+const data={...a};
+delete data.id;
+data.nome=a.nome+' (cópia)';
+data.downloads=0;
+data.timestamp=Date.now();
+data.pinned=false;
+db.ref('addons').push(data).then(()=>{showToast('Addon duplicado!');logActivity('duplicate_addon',a.nome)}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+// Selection & Bulk
+function toggleSelect(id,checked){
+if(checked)selectedAddons.add(id);else selectedAddons.delete(id);
+updateBulkBar();renderAddonList();
+}
+function clearSelection(){selectedAddons.clear();updateBulkBar();renderAddonList()}
+function updateBulkBar(){
+const bar=document.getElementById('bulkBar');
+const count=selectedAddons.size;
+document.getElementById('bulkCount').textContent=count+' selecionado'+(count!==1?'s':'');
+bar.classList.toggle('show',count>0);
+document.getElementById('bulkDeleteBtn').style.display=count>0?'inline-flex':'none';
+document.getElementById('bulkCatBtn').style.display=count>0?'inline-flex':'none';
+}
+
+function bulkDelete(){
+const count=selectedAddons.size;
+if(!count)return;
+showConfirm('Excluir Selecionados',`Excluir ${count} addon${count>1?'s':''}?`,()=>{
+const updates={};
+selectedAddons.forEach(id=>updates['addons/'+id]=null);
+db.ref().update(updates).then(()=>{showToast(count+' addons excluídos.');logActivity('bulk_delete',count+' addons');selectedAddons.clear();updateBulkBar()}).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+function bulkChangeCategory(){
+if(!selectedAddons.size)return;
+updateCategorySelects();
+const sel=document.getElementById('bulkNewCat');
+sel.innerHTML='<option value="">Selecione</option>'+categories.map(c=>`<option>${c}</option>`).join('');
+document.getElementById('bulkCatModal').classList.add('open');
+}
+
+function applyBulkCategory(){
+const cat=document.getElementById('bulkNewCat').value;
+if(!cat)return showToast('Selecione uma categoria','error');
+const updates={};
+selectedAddons.forEach(id=>updates['addons/'+id+'/categoria']=cat);
+db.ref().update(updates).then(()=>{showToast('Categoria alterada!');logActivity('bulk_category',cat);closeModals();selectedAddons.clear();updateBulkBar()}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+// Reorder
+function toggleReorderMode(){
+reorderMode=!reorderMode;
+document.getElementById('toggleReorderBtn').textContent=reorderMode?'✅ Modo Normal':'🔀 Reordenar';
+document.getElementById('saveOrderBtn').style.display=reorderMode?'inline-flex':'none';
+renderAddonList();
+}
+function saveAddonOrder(){
+const rows=document.querySelectorAll('#addonList .row');
+const updates={};
+rows.forEach((row,i)=>updates['addons/'+row.dataset.id+'/order']=i);
+db.ref().update(updates).then(()=>showToast('Ordem salva!')).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+// Drag & Drop
+function dragStart(e){draggedRow=e.target.closest('.row');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',draggedRow.dataset.id);setTimeout(()=>draggedRow.classList.add('dragging'),0)}
+function dragEnd(e){if(draggedRow){draggedRow.classList.remove('dragging');document.querySelectorAll('.row').forEach(r=>r.classList.remove('drag-over'));draggedRow=null}}
+function dragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';const row=e.target.closest('.row');if(row&&row!==draggedRow){document.querySelectorAll('.row').forEach(r=>r.classList.remove('drag-over'));row.classList.add('drag-over')}}
+function dragLeave(e){const row=e.target.closest('.row');if(row)row.classList.remove('drag-over')}
+function drop(e){
+e.preventDefault();const target=e.target.closest('.row');if(!target||!draggedRow||target===draggedRow)return;
+const container=document.getElementById('addonList');const rows=Array.from(container.querySelectorAll('.row'));
+const di=rows.indexOf(draggedRow),ti=rows.indexOf(target);
+if(di<ti)container.insertBefore(draggedRow,target.nextSibling);else container.insertBefore(draggedRow,target);
+document.querySelectorAll('.row').forEach(r=>r.classList.remove('drag-over'));draggedRow.classList.remove('dragging');draggedRow=null;
+showToast('Ordem alterada. Clique em "Salvar Ordem" para gravar.');
+}
+
+function previewAddonImages(){
+const urls=document.getElementById('a_imagens').value.split('\n').filter(Boolean);
+document.getElementById('a_preview').innerHTML=urls.map(url=>`<img src="${url}" alt="preview" onerror="this.style.display='none'">`).join('');
+}
+
+// CATEGORIES
+function updateCategorySelects(){
+const sel=document.getElementById('a_categoria');
+if(sel)sel.innerHTML='<option value="">Selecione uma categoria</option>'+categories.map(c=>`<option>${c}</option>`).join('');
+}
+
+function renderCategoriesList(){
+const container=document.getElementById('categoriesList');
+container.innerHTML=categories.map((cat,i)=>{
+const meta=categoryMeta[cat]||{};
+const isNC=cat==='Addons do NCMine'||(ncmineConfig.name&&cat===ncmineConfig.name);
+const icon=meta.icon||(isNC?'👑':'📦');
+return`<div class="category-tag ${isNC?'ncmine':''}">
+<button class="move-btn" onclick="moveCategory(${i},-1)">▲</button>
+<button class="move-btn" onclick="moveCategory(${i},1)">▼</button>
+${icon} ${cat}
+<button class="edit-btn" onclick="editCategory(${i})">✏️</button>
+<button onclick="removeCategory('${cat}')">×</button>
+</div>`;
+}).join('');
+}
+
+function addCategory(){
+const input=document.getElementById('newCategoryName');
+const name=input.value.trim();
+if(!name)return showToast('Digite um nome','error');
+if(categories.includes(name))return showToast('Já existe','error');
+const icon=document.getElementById('newCategoryIcon').value;
+const color=document.getElementById('newCategoryColor').value;
+categories.push(name);categories.sort();
+categoryMeta[name]={icon,color};
+db.ref('categorias').set(categoryMeta).then(()=>{
+showToast('Categoria adicionada!');input.value='';updateCategorySelects();renderCategoriesList();
+document.getElementById('statCategories').textContent=categories.length;logActivity('create_category',name);
+}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+function removeCategory(cat){
+showConfirm('Remover Categoria',`Remover "${cat}"? Addons desta categoria não serão excluídos.`,()=>{
+categories=categories.filter(c=>c!==cat);delete categoryMeta[cat];
+db.ref('categorias').set(categoryMeta).then(()=>{
+showToast('Categoria removida');updateCategorySelects();renderCategoriesList();
+document.getElementById('statCategories').textContent=categories.length;logActivity('delete_category',cat);
+}).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+function moveCategory(index,dir){
+const ni=index+dir;if(ni<0||ni>=categories.length)return;
+[categories[index],categories[ni]]=[categories[ni],categories[index]];
+db.ref('categorias').set(categoryMeta).then(()=>{renderCategoriesList();updateCategorySelects()});
+}
+
+function editCategory(index){
+const cat=categories[index];
+const meta=categoryMeta[cat]||{};
+document.getElementById('editCatIndex').value=index;
+document.getElementById('ce_name').value=cat;
+document.getElementById('ce_color').value=meta.color||'#00c853';
+document.getElementById('ce_colorText').value=meta.color||'#00c853';
+buildIconPicker('catIconPicker',meta.icon||'📦',icon=>{
+document.querySelectorAll('#catIconPicker .icon-option').forEach(o=>o.classList.remove('selected'));
+document.querySelector(`#catIconPicker .icon-option[data-icon="${icon}"]`)?.classList.add('selected');
+});
+document.getElementById('categoryEditModal').classList.add('open');
+}
+
+function saveCategoryEdit(){
+const index=parseInt(document.getElementById('editCatIndex').value);
+const oldName=categories[index];
+const newName=document.getElementById('ce_name').value.trim();
+const newColor=document.getElementById('ce_color').value;
+const selectedIcon=document.querySelector('#catIconPicker .icon-option.selected');
+const newIcon=selectedIcon?.dataset.icon||'📦';
+if(!newName)return showToast('Nome obrigatório','error');
+
+if(newName!==oldName){
+// Rename in categories array
+categories[index]=newName;
+// Rename in categoryMeta
+const oldMeta=categoryMeta[oldName];
+delete categoryMeta[oldName];
+categoryMeta[newName]={...oldMeta,icon:newIcon,color:newColor};
+// Update addons with old category
+const updates={};
+allAddons.forEach(a=>{if(a.categoria===oldName)updates['addons/'+a.id+'/categoria']=newName});
+if(Object.keys(updates).length)db.ref().update(updates);
+}else{
+categoryMeta[newName]={...(categoryMeta[newName]||{}),icon:newIcon,color:newColor};
+}
+db.ref('categorias').set(categoryMeta).then(()=>{
+showToast('Categoria atualizada!');logActivity('edit_category',newName);closeModals();updateCategorySelects();renderCategoriesList();
+}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+// NCMINE
+function populateNCMineForm(){
+document.getElementById('nc_name').value=ncmineConfig.name||'Addons do NCMine';
+document.getElementById('nc_slug').value=ncmineConfig.slug||'addons-do-ncmine';
+document.getElementById('nc_color').value=ncmineConfig.color||'#ffd740';
+document.getElementById('nc_colorText').value=ncmineConfig.color||'#ffd740';
+document.getElementById('nc_bgColor').value=ncmineConfig.bgColor||'#1a1200';
+document.getElementById('nc_bgColorText').value=ncmineConfig.bgColor||'#1a1200';
+document.getElementById('nc_bannerTitle').value=ncmineConfig.bannerTitle||'';
+document.getElementById('nc_bannerSub').value=ncmineConfig.bannerSub||'';
+document.getElementById('nc_btnText').value=ncmineConfig.btnText||'Ver todos ➜';
+document.getElementById('nc_description').value=ncmineConfig.description||'';
+document.getElementById('nc_filterAuthor').checked=ncmineConfig.filterAuthor!==false;
+document.getElementById('nc_filterName').checked=ncmineConfig.filterName===true;
+document.getElementById('nc_filterCategory').checked=ncmineConfig.filterCategory!==false;
+buildIconPicker('ncIconPicker',ncmineConfig.icon||'👑',icon=>{
+document.querySelectorAll('#ncIconPicker .icon-option').forEach(o=>o.classList.remove('selected'));
+document.querySelector(`#ncIconPicker .icon-option[data-icon="${icon}"]`)?.classList.add('selected');
+});
+}
+
+function buildIconPicker(containerId,selectedIcon,onSelect){
+const container=document.getElementById(containerId);
+container.innerHTML=ICONS.map(icon=>`<div class="icon-option ${icon===selectedIcon?'selected':''}" data-icon="${icon}" onclick="this.parentElement.querySelectorAll('.icon-option').forEach(o=>o.classList.remove('selected'));this.classList.add('selected');(${onSelect.toString()})('${icon}')">${icon}</div>`).join('');
+}
+
+function saveNCMineConfig(){
+const selectedIcon=document.querySelector('#ncIconPicker .icon-option.selected');
+ncmineConfig={
+name:document.getElementById('nc_name').value.trim()||'Addons do NCMine',
+slug:document.getElementById('nc_slug').value.trim()||'addons-do-ncmine',
+icon:selectedIcon?.dataset.icon||'👑',
+color:document.getElementById('nc_color').value,
+bgColor:document.getElementById('nc_bgColor').value,
+bannerTitle:document.getElementById('nc_bannerTitle').value.trim(),
+bannerSub:document.getElementById('nc_bannerSub').value.trim(),
+btnText:document.getElementById('nc_btnText').value.trim(),
+description:document.getElementById('nc_description').value.trim(),
+filterAuthor:document.getElementById('nc_filterAuthor').checked,
+filterName:document.getElementById('nc_filterName').checked,
+filterCategory:document.getElementById('nc_filterCategory').checked
+};
+// Also update the category name if it changed
+const oldCatName=categories.find(c=>c==='Addons do NCMine'||c===ncmineConfig.name);
+if(oldCatName&&oldCatName!==ncmineConfig.name){
+const idx=categories.indexOf(oldCatName);
+categories[idx]=ncmineConfig.name;
+db.ref('categorias').set(categoryMeta);
+}
+db.ref('ncmineConfig').set(ncmineConfig).then(()=>{
+showToast('NCMine salvo!');logActivity('edit_ncmine',ncmineConfig.name);updateNCBannerPreview();
+}).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+function loadNCMineConfig(){db.ref('ncmineConfig').once('value',snap=>{if(snap.exists()){ncmineConfig=snap.val();populateNCMineForm();updateNCBannerPreview();showToast('Configuração restaurada.')}})}
+
+function updateNCBannerPreview(){
+const p=document.getElementById('ncBannerPreview');
+if(!p)return;
+const cfg=ncmineConfig;
+p.style.background=cfg.bgColor||'#1a1200';
+p.style.border=`1.5px solid ${cfg.color||'#ffd740'}40`;
+p.innerHTML=`
+<span style="font-size:1.8rem">${cfg.icon||'👑'}</span>
+<div style="flex:1"><div style="font-weight:800;color:${cfg.color||'#ffd740'};font-size:0.95rem">${cfg.bannerTitle||'Addons do NCMine'}</div><div style="font-size:0.75rem;color:${cfg.color||'#ffd740'}99;margin-top:2px">${cfg.bannerSub||''}</div></div>
+<button style="background:${cfg.color||'#ffd740'};color:#000;font-weight:800;font-size:0.78rem;padding:6px 14px;border-radius:20px;border:none;cursor:pointer">${cfg.btnText||'Ver todos ➜'}</button>`;
+}
+
+function renderNCMineAddons(){
+const ncAddons=allAddons.filter(a=>isNCMineAddon(a));
+document.getElementById('ncmineAddonsCount').textContent=ncAddons.length;
+const container=document.getElementById('ncmineAddonsList');
+container.innerHTML=ncAddons.length?ncAddons.map(a=>{
+const img=a.imagens&&a.imagens[0]?`<img class="row-img" src="${a.imagens[0]}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+const ph=(!a.imagens||!a.imagens[0])?`<div class="row-img-placeholder">👑</div>`:`<div class="row-img-placeholder" style="display:none">👑</div>`;
+return`<div class="row" style="border-color:rgba(255,215,64,0.08)">
+${img}${ph}
+<div class="row-info"><div class="row-name">${a.nome}<span class="ncmine-badge">👑</span></div>
+<div class="row-meta"><span>⬇️ ${(a.downloads||0).toLocaleString('pt-BR')}</span><span>⭐ ${a.rating||'—'}</span>${a.autor?`<span>👤 ${a.autor}</span>`:''}</div></div>
+<div class="row-actions"><button class="btn btn-secondary btn-xs" onclick="openAddonForm('${a.id}')">✏️</button><button class="btn btn-danger btn-xs" onclick="toggleNCMine('${a.id}')">👑✕</button></div>
+</div>`;
+}).join(''):'<div style="padding:1.5rem;text-align:center;color:#666">Nenhum addon NCMine encontrado.</div>';
+}
+
+function isNCMineAddon(a){
+return(a.isNCMine)||(a.categoria==='Addons do NCMine')||(a.categoria===ncmineConfig.name)||(ncmineConfig.filterAuthor&&a.autor&&a.autor.toLowerCase().includes('ncmine'))||(ncmineConfig.filterName&&a.nome&&a.nome.toLowerCase().includes('ncmine'))||(ncmineConfig.filterCategory&&a.categoria==='Addons do NCMine');
+}
+
+function toggleNCMine(id){
+const a=allAddons.find(x=>x.id===id);
+if(!a)return;
+const newVal=!(a.isNCMine||a.categoria==='Addons do NCMine');
+db.ref('addons/'+id).update({isNCMine:newVal,categoria:newVal?'Addons do NCMine':(a.categoria==='Addons do NCMine'?'Geral':a.categoria)})
+.then(()=>showToast(newVal?'Marcado como NCMine!':'Removido do NCMine.')).catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+/* =======================================
+   SMART ADDON FAST PUBLISH
+======================================= */
+function openFastNCMineAddon() {
+  openAddonForm();
+  document.getElementById('a_categoria').value = "Addons do NCMine";
+  document.getElementById('a_autor').value = "NCMine";
+  document.getElementById('a_ncmine').value = "true";
+  document.getElementById('smartPasteArea').focus();
+  showToast('Modo de adição NCMine Rápido ativado.', 'success');
+}
+
+function smartExtract() {
+  const text = document.getElementById('smartPasteArea').value;
+  if (!text.trim()) return showToast('Cole algo na área primeiro!', 'error');
+
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const urls = text.match(urlRegex) || [];
+  const imgUrls = [];
+  const downloadUrls = [];
+  const imgExts = ['.png', '.jpg', '.jpeg', '.gif', '.webp', 'imgur.com', 'media.discordapp.net', 'cdn.discordapp.com'];
+  const dlHosts = ['mediafire.com', 'linkvertise.com', 'mega.nz', 'drive.google.com', 'dropbox.com', '.zip', '.mcaddon', '.mcpack'];
+
+  urls.forEach(url => {
+    let cleanUrl = url.replace(/['"]$/, '');
+    const lowerUrl = cleanUrl.toLowerCase();
+    if (imgExts.some(ext => lowerUrl.includes(ext))) { imgUrls.push(cleanUrl); }
+    else if (dlHosts.some(host => lowerUrl.includes(host))) { downloadUrls.push(cleanUrl); }
+  });
+
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('http'));
+  if (lines.length > 0 && !document.getElementById('a_nome').value) {
+    document.getElementById('a_nome').value = lines[0].substring(0, 50);
+    lines.shift();
+  }
+  if (imgUrls.length > 0) document.getElementById('a_imagens').value = imgUrls.join('\n');
+  if (downloadUrls.length > 0) document.getElementById('a_link').value = downloadUrls[0];
+  if (lines.length > 0 && !document.getElementById('a_descricao').value) document.getElementById('a_descricao').value = lines.join('\n');
+  document.getElementById('smartPasteArea').value = '';
+  showToast('Extração concluída!', 'success');
+}
+
+function duplicateAddon(id) {
+  const a = allAddons.find(item => item.id === id);
+  if (!a) return;
+  const clone = JSON.parse(JSON.stringify(a));
+  clone.nome = clone.nome + " (Cópia)";
+  delete clone.id;
+  db.ref('addons').push(clone).then(() => {
+    showToast('Addon duplicado!');
+    logActivity('clone_addon', clone.nome);
+  }).catch(e => showToast('Erro: ' + e.message, 'error'));
+}
+
+
+// CREATORS
+function openCreatorForm(id=null){
+document.getElementById('creatorModal').classList.add('open');
+updateAddonCheckboxes();
+if(id){
+const cr=allCreators.find(c=>c.id===id);
+document.getElementById('creatorFormTitle').textContent='✏️ Editar: '+cr.nome;
+document.getElementById('editCreatorId').value=id;
+document.getElementById('c_nome').value=cr.nome||'';
+document.getElementById('c_slug').value=cr.slug||'';
+document.getElementById('c_foto').value=cr.foto||'';
+document.getElementById('c_verificado').value=cr.verificado?'true':'false';
+document.getElementById('c_descricao').value=cr.descricao||'';
+document.getElementById('c_youtube').value=cr.links?.youtube||'';
+document.getElementById('c_twitter').value=cr.links?.twitter||'';
+document.getElementById('c_discord').value=cr.links?.discord||'';
+document.getElementById('c_website').value=cr.links?.website||'';
+document.querySelectorAll('#c_addonsCheck input[type=checkbox]').forEach(cb=>cb.checked=cr.addons&&cr.addons.includes(cb.value));
+}else{
+document.getElementById('creatorFormTitle').textContent='➕ Novo Criador';
+document.getElementById('editCreatorId').value='';
+['c_nome','c_slug','c_foto','c_descricao','c_youtube','c_twitter','c_discord','c_website'].forEach(id=>document.getElementById(id).value='');
+document.getElementById('c_verificado').value='false';
+document.querySelectorAll('#c_addonsCheck input[type=checkbox]').forEach(cb=>cb.checked=false);
+}
+}
+
+function saveCreator(){
+const id=document.getElementById('editCreatorId').value;
+const nome=document.getElementById('c_nome').value.trim();
+if(!nome)return showToast('Nome obrigatório','error');
+let slug=document.getElementById('c_slug').value.trim();
+if(!slug)slug=nome.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+
+const links = {
+  youtube: document.getElementById('c_youtube').value.trim(),
+  twitter: document.getElementById('c_twitter').value.trim(),
+  discord: document.getElementById('c_discord').value.trim(),
+  website: document.getElementById('c_website').value.trim()
+};
+
+const data={
+  nome,
+  slug,
+  foto:document.getElementById('c_foto').value.trim(),
+  verificado:document.getElementById('c_verificado').value==='true',
+  descricao:document.getElementById('c_descricao').value.trim(),
+  links,
+  addons:Array.from(document.querySelectorAll('#c_addonsCheck input:checked')).map(cb=>cb.value)
+};
+
+(id?db.ref('creators/'+id).update(data):db.ref('creators').push(data))
+.then(()=>{showToast('Criador salvo!');logActivity(id?'edit_creator':'create_creator',nome);closeModals()})
+.catch(e=>showToast('Erro: '+e.message,'error'));
+}
+
+function deleteCreator(id,name){
+showConfirm('Excluir Criador',`Excluir "${name}"?`,()=>{
+db.ref('creators/'+id).remove().then(()=>{showToast('Criador excluído.');logActivity('delete_creator',name)}).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+function renderCreatorList(){
+const q=(document.getElementById('creatorSearch')?.value||'').toLowerCase();
+const filtered=allCreators.filter(c=>(c.nome||'').toLowerCase().includes(q));
+document.getElementById('creatorList').innerHTML=filtered.length?filtered.map(c=>{
+const imgHTML=c.foto?`<img class="row-img" src="${c.foto}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`:'';
+const phHTML=!c.foto?`<div class="row-img-placeholder">👤</div>`:`<div class="row-img-placeholder" style="display:none">👤</div>`;
+return`<div class="row">${imgHTML}${phHTML}<div class="row-info"><div class="row-name">${c.nome} ${c.verificado?'<span style="color:#1da1f2" title="Verificado">✔</span>':''}</div><div class="row-meta"><span>🔗 /criador/${c.slug}</span><span>📦 ${(c.addons||[]).length} addons</span></div></div><div class="row-actions"><button class="btn btn-secondary btn-xs" onclick="openCreatorForm('${c.id}')">✏️</button><button class="btn btn-danger btn-xs" onclick="deleteCreator('${c.id}','${c.nome.replace(/'/g,"\\'")}')">🗑️</button></div></div>`;
+}).join(''):'<div style="padding:2rem;text-align:center;color:#555">Nenhum criador encontrado.</div>';
+}
+
+function updateAddonCheckboxes(){
+document.getElementById('c_addonsCheck').innerHTML=allAddons.map(a=>`<label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer"><input type="checkbox" value="${a.id}" style="accent-color:#00c853"> ${a.nome}</label>`).join('');
+}
+
+// IMPORT/EXPORT
+function generateJSON(){
+const data={};allAddons.forEach(a=>{data[a.id]={...a};delete data[a.id].id});
+downloadJSON(data,'addons.json');showToast('addons.json gerado!');logActivity('export','addons.json');
+}
+
+function exportFullBackup(){
+const data={addons:{},creators:{},categories,categoryMeta,siteConfig:{},ncmineConfig:{}};
+allAddons.forEach(a=>{data.addons[a.id]={...a};delete data.addons[a.id].id});
+allCreators.forEach(c=>{data.creators[c.id]={...c};delete data.creators[c.id].id});
+db.ref('siteConfig').once('value',s=>{if(s.exists())data.siteConfig=s.val();
+db.ref('ncmineConfig').once('value',s2=>{if(s2.exists())data.ncmineConfig=s2.val();
+downloadJSON(data,'mineaddonsnews-backup.json');showToast('Backup completo gerado!');logActivity('export','backup completo');
+});});
+}
+
+function downloadJSON(data,filename){
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const url=URL.createObjectURL(blob);
+const a=document.createElement('a');a.href=url;a.download=filename;a.click();
+URL.revokeObjectURL(url);
+}
+
+function handleImportDrop(e){e.preventDefault();e.currentTarget.classList.remove('dragover');const file=e.dataTransfer.files[0];if(file)readImportFile(file)}
+function handleImportFile(input){const file=input.files[0];if(file)readImportFile(file)}
+function readImportFile(file){
+const reader=new FileReader();
+reader.onload=e=>{
+try{pendingImportData=JSON.parse(e.target.result);showToast('Arquivo carregado! '+Object.keys(pendingImportData.addons||pendingImportData).length+' itens.')}
+catch(err){showToast('Arquivo inválido!','error');pendingImportData=null}
+};reader.readAsText(file);
+}
+
+function importToFirebase(){
+if(!pendingImportData)return showToast('Nenhum arquivo importado.','error');
+const addons=pendingImportData.addons||pendingImportData;
+let count=0;
+Object.entries(addons).forEach(([id,data])=>{
+db.ref('addons').push({...data,timestamp:data.timestamp||Date.now()});count++;
+});
+showToast(count+' addons importados!');logActivity('import',count+' addons');pendingImportData=null;
+}
+
+function confirmOverwriteImport(){
+if(!pendingImportData)return showToast('Nenhum arquivo importado.','error');
+showConfirm('Sobrescrever Tudo','Isso vai APAGAR todos os dados atuais e substituir pelo arquivo importado. Continuar?',()=>{
+const updates={};
+const addons=pendingImportData.addons||pendingImportData;
+updates['addons']=null;
+Object.entries(addons).forEach(([id,data])=>updates['addons/'+id]=data);
+if(pendingImportData.creators){updates['creators']=null;Object.entries(pendingImportData.creators).forEach(([id,data])=>updates['creators/'+id]=data)}
+if(pendingImportData.categories)updates['categorias']=pendingImportData.categories;
+if(pendingImportData.siteConfig)updates['siteConfig']=pendingImportData.siteConfig;
+if(pendingImportData.ncmineConfig)updates['ncmineConfig']=pendingImportData.ncmineConfig;
+db.ref().update(updates).then(()=>{showToast('Dados sobrescritos!');logActivity('overwrite_import','Backup restaurado');pendingImportData=null}).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+// ACTIVITY LOG
+function logActivity(action,detail){
+db.ref('activityLog').push({action,detail,timestamp:Date.now(),user:document.getElementById('userName').textContent||'Admin'});
+}
+
+function renderActivityLog(logs){
+const container=document.getElementById('activityLog');
+const empty=document.getElementById('emptyLogs');
+if(!logs.length){container.innerHTML='';empty.style.display='block';return}
+empty.style.display='none';
+const icons={'create_addon':'➕','edit_addon':'✏️','delete_addon':'🗑️','duplicate_addon':'📋','create_category':'🏷️','edit_category':'✏️','delete_category':'🗑️','edit_ncmine':'👑','create_creator':'👤','edit_creator':'✏️','delete_creator':'🗑️','edit_config':'⚙️','export':'📤','import':'📥','overwrite_import':'⚠️','bulk_delete':'🗑️','bulk_category':'🏷️'};
+container.innerHTML=logs.map(l=>{
+const time=new Date(l.timestamp);
+const timeStr=time.toLocaleDateString('pt-BR')+' '+time.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+return`<div class="activity-item"><div class="activity-icon">${icons[l.action]||'📋'}</div><div class="activity-text"><strong>${l.user||'Admin'}</strong> ${l.action.replace(/_/g,' ')} — ${l.detail}</div><div class="activity-time">${timeStr}</div></div>`;
+}).join('');
+}
+
+function clearLogs(){
+showConfirm('Limpar Logs','Remover todo o histórico de atividade?',()=>{
+db.ref('activityLog').remove().then(()=>showToast('Logs limpos!')).catch(e=>showToast('Erro: '+e.message,'error'));
+});
+}
+
+function copyLogs(){
+const logs=document.getElementById('activityLog').innerText;
+navigator.clipboard.writeText(logs).then(()=>showToast('Logs copiados!')).catch(e=>showToast('Erro ao copiar','error'));
+}
+
+// UTILS
+function closeModals(){
+document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
+}
+
+function showConfirm(title,msg,onYes){
+document.getElementById('confirmTitle').textContent=title;
+document.getElementById('confirmMsg').textContent=msg;
+document.getElementById('confirmYes').onclick=()=>{closeConfirm();onYes()};
+document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('open')}
+
+function showToast(msg,type='success'){
+const container=document.getElementById('toastContainer');
+const toast=document.createElement('div');
+toast.className=`toast ${type}`;toast.textContent=msg;
+container.appendChild(toast);
+setTimeout(()=>{toast.style.opacity='0';toast.style.transition='all 0.3s';setTimeout(()=>toast.remove(),300)},3000);
+}
+
+// Click outside to close modals
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModals()});
+
+// Sync color picker texts
+document.getElementById('nc_color').addEventListener('input',e=>document.getElementById('nc_colorText').value=e.target.value);
+document.getElementById('nc_bgColor').addEventListener('input',e=>document.getElementById('nc_bgColorText').value=e.target.value);
+document.getElementById('cfg_primaryColor').addEventListener('input',e=>document.getElementById('cfg_primaryColorText').value=e.target.value);
+document.getElementById('ce_color').addEventListener('input',e=>document.getElementById('ce_colorText').value=e.target.value);
+</script>
+</body>
+</html>

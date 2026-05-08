@@ -1,0 +1,20 @@
+{
+  "name": "Mineaddonsnews - Os Melhores Addons para Minecraft",
+  "short_name": "Mineaddonsnews",
+  "description": "Baixe os melhores addons para Minecraft Bedrock e Java. Download rápido, seguro e gratuito.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0a",
+  "theme_color": "#00c853",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "https://minecraft.wiki/images/Block_of_Diamond_JE5_BE3.png?542ee",
+      "sizes": "150x150",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "iarc_rating_id": "9b8be0b0-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+}

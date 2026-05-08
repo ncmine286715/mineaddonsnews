@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mineaddonsnews - Os Melhores Addons para Minecraft</title>
+  <meta name="description" content="Baixe os melhores addons para Minecraft Bedrock e Java. Download rapido, seguro e gratuito. Addons de moveis, veiculos, armas e muito mais!">
+  <meta property="og:title" content="Mineaddonsnews - Addons Premium">
+  <meta property="og:description" content="Os melhores addons para Minecraft Bedrock/Java. Download gratis!">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#00E676">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <!-- Fonts: Outfit (geral) + Press Start 2P (Minecraft) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Press+Start+2P&display=swap" rel="stylesheet">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2300E676' rx='15' width='100' height='100'/><text x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-size='50' font-weight='bold'>M</text></svg>">
+  
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+</head>
+<body>
+  <!-- Loading Screen Premium -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="loading-content">
+      <div class="loading-logo">M</div>
+      <div class="loading-text">CARREGANDO...</div>
+      <div class="loading-bar"><div class="loading-progress"></div></div>
+    </div>
+  </div>
+
+  <!-- Navbar Glass -->
+  <nav class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="#" class="nav-logo" onclick="goHome(); return false;">
+        <span class="logo-icon">M</span>
+        <span class="logo-text" id="siteNameDisplay">Mineaddonsnews</span>
+      </a>
+      
+      <div class="nav-search">
+        <div class="search-wrapper">
+          <input type="text" class="search-input" id="searchInput" placeholder="Buscar addons incriveis...">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </div>
+      </div>
+      
+      <div class="nav-actions">
+        <button class="nav-btn" id="favNavBtn" onclick="toggleFavoritesView()" title="Favoritos">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          <span class="badge-count" id="favCount" style="display:none;">0</span>
+        </button>
+        <button class="nav-btn mobile-search-btn" onclick="toggleMobileSearch()" title="Buscar">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div class="mobile-search" id="mobileSearch">
+      <input type="text" class="search-input-mobile" id="searchInputMobile" placeholder="Buscar addons...">
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Hero Section Ultra Premium com Parallax -->
+    <section class="hero" data-parallax="hero">
+      <!-- Parallax Background Layers -->
+      <div class="hero-parallax-bg">
+        <div class="parallax-layer parallax-layer-1"></div>
+        <div class="parallax-layer parallax-layer-2"></div>
+        <div class="parallax-layer parallax-layer-3"></div>
+      </div>
+      
+      <!-- Floating Addons Animation -->
+      <div class="floating-addons-container">
+        <div class="floating-addon addon-float-1">
+          <img src="https://images.bedrockexplorer.com/minecraft-marketplace-content/shapescape-bossesplus-add-on-1.5-thumbnail-58e747b1a2db7b5d-800.jpg" alt="Bosses Plus" loading="lazy">
+        </div>
+        <div class="floating-addon addon-float-2">
+          <img src="https://images.bedrockexplorer.com/minecraft-marketplace-content/razzleberries-decocraft-thumbnail-985357787eece15c-800.jpg" alt="Decocraft" loading="lazy">
+        </div>
+        <div class="floating-addon addon-float-3">
+          <img src="https://images.bedrockexplorer.com/minecraft-marketplace-content/starfish-studios-naturalist-add-on-26.1-thumbnail-dc557d4984b77273-800.jpg" alt="Naturalist" loading="lazy">
+        </div>
+        <div class="floating-addon addon-float-4">
+          <img src="https://images.bedrockexplorer.com/minecraft-marketplace-content/4ks-studios-biomes-o-plenty-thumbnail-a455fdd5278fb48e-800.jpg" alt="Biomes O Plenty" loading="lazy">
+        </div>
+        <div class="floating-addon addon-float-5">
+          <img src="https://www.bedrockexplorer.com/images/icons/addon_gold_badge.png" alt="Gold Badge" loading="lazy">
+        </div>
+        <div class="floating-addon addon-float-6">
+          <img src="https://images.bedrockexplorer.com/minecraft-marketplace-content/shapescape-bossesplus-add-on-1.5-thumbnail-58e747b1a2db7b5d-800.jpg" alt="Bosses Plus" loading="lazy">
+        </div>
+      </div>
+      
+      <!-- Creeper Breaking Wall Animation -->
+      <div class="creeper-animation">
+        <img src="/images/creeper-wall.png" alt="Creeper" class="creeper-img">
+        <div class="creeper-glow"></div>
+      </div>
+      
+      <div class="hero-badge" data-parallax-speed="0.3">
+        <span class="dot"></span>
+        <span>Novos addons toda semana</span>
+      </div>
+      
+      <h1 id="heroTitle" data-parallax-speed="0.2">Os Melhores <span class="highlight">Addons</span> para Minecraft</h1>
+      
+      <p class="hero-subtitle" id="heroSubtitle" data-parallax-speed="0.15">
+        Download rapido, seguro e 100% gratuito. Encontre o addon perfeito para transformar seu mundo em uma experiencia incrivel.
+      </p>
+      
+      <div class="hero-cta" data-parallax-speed="0.1">
+        <a href="#addons" class="btn-primary glow-pulse" onclick="scrollToGrid(event)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7,10 12,15 17,10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Ver Addons</span>
+          <span class="btn-shine"></span>
+        </a>
+      </div>
+      
+      <div class="stats-bar" data-parallax-speed="0.05">
+        <div class="stat" data-counter-animate>
+          <div class="stat-number" id="totalAddons">0</div>
+          <div class="stat-label">Addons</div>
+        </div>
+        <div class="stat" data-counter-animate>
+          <div class="stat-number" id="totalDownloads">0</div>
+          <div class="stat-label">Downloads</div>
+        </div>
+        <div class="stat" data-counter-animate>
+          <div class="stat-number" id="totalCategories">0</div>
+          <div class="stat-label">Categorias</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NCMine Section - Criador + Categoria Unificado -->
+    <section class="ncmine-section" id="ncmineSection">
+      <div class="ncmine-card-main" onclick="setCategory('Addons do NCMine', document.querySelector('.filter-chip[data-cat=\\'Addons do NCMine\\']'))">
+        <div class="ncmine-avatar">
+          <img src="https://yt3.googleusercontent.com/ytc/APkrFKZWeMCsx4Q9e_Hm6nhOOUQ3fv96QGUXiMr1-pRRNA=s176-c-k-c0x00ffffff-no-rj" alt="NCMine" onerror="this.parentElement.innerHTML='<div style=\\'display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:2.5rem;color:#FFD740;\\'>&#x1F451;</div>'">
+        </div>
+        <div class="ncmine-info">
+          <div class="ncmine-badge">Criador Oficial</div>
+          <div class="ncmine-name">NCMine <span class="verified">&#10003;</span></div>
+          <div class="ncmine-desc">Os melhores addons do Minecraft Bedrock! Clique para ver todos os addons exclusivos do NCMine.</div>
+        </div>
+        <div class="ncmine-action">
+          <button class="ncmine-btn">
+            <span>Ver Addons</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="filters-section">
+      <div class="filters-scroll" id="filtersContainer"></div>
+    </section>
+
+    <!-- Sort Bar -->
+    <div class="sort-bar">
+      <div class="results-count" id="resultsCount">Mostrando <span>0</span> addons</div>
+      <div class="sort-options">
+        <button class="sort-btn active" data-sort="newest" onclick="setSort('newest')">Recentes</button>
+        <button class="sort-btn" data-sort="popular" onclick="setSort('popular')">Populares</button>
+        <button class="sort-btn" data-sort="name" onclick="setSort('name')">A-Z</button>
+      </div>
+    </div>
+
+    <!-- Addons Grid -->
+    <section class="addons-section" id="addons">
+      <div class="addons-grid" id="addonsGrid"></div>
+    </section>
+
+    <!-- Outros Criadores (embaixo) -->
+    <section class="creators-section" id="creatorsSection" style="display:none;">
+      <h2 class="section-title">Outros <span>Criadores</span></h2>
+      <div class="creators-grid" id="creatorsGrid"></div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+      <h2 class="section-title">Perguntas <span>Frequentes</span></h2>
+      <div class="faq-list">
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>Como instalar um addon?</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            <p>1. Baixe o arquivo .mcaddon ou .mcpack</p>
+            <p>2. Toque no arquivo baixado</p>
+            <p>3. O Minecraft abrira e importara automaticamente</p>
+            <p>4. Ative o addon nas configuracoes do mundo</p>
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>Os addons sao seguros?</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            <p>Sim! Todos os addons sao verificados antes de serem publicados. Baixe com seguranca total.</p>
+          </div>
+        </div>
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-question">
+            <span>Funciona em qual versao?</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </div>
+          <div class="faq-answer">
+            <p>A maioria dos addons funciona no Minecraft Bedrock (celular, Windows 10, consoles). Verifique a versao indicada em cada addon.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer Premium -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">M</span>
+        <span id="footerSiteName">Mineaddonsnews</span>
+      </div>
+      <p class="footer-text" id="footerText">Os melhores addons para Minecraft Bedrock e Java. Download seguro e gratuito.</p>
+      <p class="footer-copy">&copy; 2024 Mineaddonsnews. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Detail Overlay -->
+  <div class="detail-overlay" id="detailOverlay">
+    <div class="detail-page" id="detailPage"></div>
+  </div>
+
+  <!-- Creator Overlay -->
+  <div class="creator-overlay" id="creatorOverlay">
+    <div class="creator-page" id="creatorPage"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scroll Top Button -->
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Voltar ao topo">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="18 15 12 9 6 15"/>
+    </svg>
+  </button>
+
+  <script src="main.js"></script>
+</body>
+</html>
